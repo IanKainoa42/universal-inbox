@@ -30,10 +30,12 @@ Knowledge workers and productivity enthusiasts who:
 - No organization required at capture time
 - Items persist until processed
 
-### 3. Batch Processing
-- User-triggered "Process" action (not real-time)
-- AI classifies each item based on user's defined categories
-- Presents classification for review before routing
+### 3. Automatic Processing
+- **No manual "Process" button** - processing happens automatically
+- Triggers: on app close, on idle, or passively in background
+- AI parses scratch note into discrete items, classifies each
+- Visual feedback: items highlight/gray out while processing, disappear when routed
+- Next open: clean slate (or items still mid-process)
 
 ### 4. User-Defined Bins
 - Users create their own categories (e.g., "Ideas," "Tasks," "Shopping," "Projects")
@@ -48,7 +50,6 @@ Knowledge workers and productivity enthusiasts who:
 
 ## Non-Goals (v1)
 
-- Real-time classification (batch only)
 - External integrations (Obsidian, Notion, etc.) - v2
 - Voice capture - v2
 - Image/file capture - v2
@@ -60,8 +61,8 @@ Knowledge workers and productivity enthusiasts who:
 
 1. Capture-to-close time < 5 seconds
 2. AI classification accuracy > 80% after 50 corrections
-3. User processes inbox at least weekly (engagement metric)
-4. Items don't pile up indefinitely (routing actually happens)
+3. Items processed within 60 seconds of app close
+4. Zero inbox residue - items don't pile up (they disappear)
 
 ## Open Questions
 

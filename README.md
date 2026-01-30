@@ -11,12 +11,13 @@ Universal Inbox separates the act of capturing thoughts from organizing them. Du
 ## Core Concept
 
 ```
-Capture (fast) → Inbox pile → "Process" button → AI classifies → Routes to bins
+Write anything → Close app → AI parses & classifies → Items disappear into bins
 ```
 
-- **Capture**: < 5 seconds to dump a thought and close
-- **Process**: Batch, not real-time. You control when.
-- **Route**: AI categorizes based on YOUR defined bins, removes items as they're routed
+- **Capture**: < 5 seconds to dump thoughts and close
+- **Process**: Automatic on close/idle - no button to press
+- **Route**: AI categorizes based on YOUR defined bins, items fade away as they're routed
+- **Next open**: Clean slate
 
 ## Platforms
 
