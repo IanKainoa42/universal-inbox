@@ -30,7 +30,10 @@ Write anything → Close app → AI parses & classifies → Items disappear into
 
 ## Tech Stack
 
-TBD - Likely SwiftUI + CloudKit
+- **UI:** SwiftUI (native iOS/macOS)
+- **Sync:** CloudKit
+- **AI:** OpenAI API (GPT-4o-mini)
+- **Background:** BGTaskScheduler
 
 ## Documentation
 

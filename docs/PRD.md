@@ -66,23 +66,43 @@ Knowledge workers and productivity enthusiasts who:
 
 ## Open Questions
 
-1. **AI backend:** OpenAI API, local model, or Apple on-device intelligence?
-2. **Sync architecture:** iCloud, custom backend, or local-only?
-3. **Correction UX:** How does user override and teach the system?
-4. **Bin templates:** Offer starter templates (GTD, PARA) or blank slate?
-5. **Revenue model:** Subscription (for AI costs) vs one-time vs freemium?
+1. **Correction UX:** How does user override a misclassification? Swipe? Long-press? Bin view?
+2. **Bin templates:** Offer starter templates (GTD, PARA) or blank slate?
+3. **Revenue model:** Subscription (covers AI costs) vs freemium (X items/month free)?
+4. **Onboarding:** How many bins should user create before first use?
 
-## Technical Considerations
+## Technical Stack
 
-### Likely Stack
-- **UI:** SwiftUI (native iOS/macOS)
-- **Sync:** CloudKit (Apple ecosystem, free tier)
-- **AI:** TBD - options include OpenAI API, Apple on-device, or hybrid
+### Chosen Stack
+- **UI:** SwiftUI (native iOS/macOS, best Apple Pencil support)
+- **Sync:** CloudKit (free tier, native Apple integration, offline/sync handled)
+- **AI:** OpenAI API (GPT-4o-mini for classification, ~$0.15/1M tokens)
+- **Background:** BGTaskScheduler (iOS native, triggers on app close/idle)
 
-### Key Technical Decisions Needed
-1. Where does AI inference run? (Cloud vs device)
-2. How are bins and rules stored?
-3. What's the correction/learning mechanism?
+### Architecture Overview
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   SwiftUI App   │────▶│    CloudKit     │────▶│   OpenAI API    │
+│  (iOS + macOS)  │     │  (Bins, Items)  │     │ (Classification)│
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ BGTaskScheduler │
+│ (Auto-process)  │
+└─────────────────┘
+```
+
+### Data Model (CloudKit)
+- **Bin:** id, name, description, sortOrder, createdAt
+- **Item:** id, rawText, binId (nullable), status (pending/processing/routed), createdAt, processedAt
+- **Correction:** id, itemId, originalBinId, correctedBinId, timestamp (for learning)
+
+### Key Implementation Details
+1. **Processing trigger:** BGTaskScheduler on app backgrounding + ScenePhase observer
+2. **Classification prompt:** System prompt with bin names/descriptions, user text as input, returns bin ID
+3. **Learning:** Store corrections, include recent corrections in classification prompt as examples
+4. **Offline:** Items queue locally, process when online
 
 ## Kill Criteria
 
