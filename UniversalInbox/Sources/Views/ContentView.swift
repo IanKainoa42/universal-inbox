@@ -4,10 +4,11 @@ struct ContentView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        TabView {
+        TabView(selection: Bindable(appState).activeTab) {
             NavigationStack {
                 CaptureView()
             }
+            .tag(AppTab.capture)
             .tabItem {
                 Label("Capture", systemImage: "square.and.pencil")
             }
@@ -15,6 +16,7 @@ struct ContentView: View {
             NavigationStack {
                 BinsView()
             }
+            .tag(AppTab.bins)
             .tabItem {
                 Label("Bins", systemImage: "tray.full")
             }
@@ -22,9 +24,18 @@ struct ContentView: View {
             NavigationStack {
                 SettingsView()
             }
+            .tag(AppTab.settings)
             .tabItem {
                 Label("Settings", systemImage: "gear")
             }
+        }
+        // Global keyboard shortcut for New Capture
+        .background {
+            Button("New Capture") {
+                appState.activeTab = .capture
+            }
+            .keyboardShortcut("n", modifiers: .command)
+            .opacity(0)
         }
     }
 }

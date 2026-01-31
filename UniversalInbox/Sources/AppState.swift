@@ -1,8 +1,15 @@
 import Observation
 import SwiftUI
 
+enum AppTab: Int {
+    case capture
+    case bins
+    case settings
+}
+
 @Observable
 class AppState {
+    var activeTab: AppTab = .capture
     var items: [Item] = []
     var bins: [Bin] = []
     var draftText: String = ""
@@ -57,6 +64,37 @@ class AppState {
         }
 
         defaults.set(draftText, forKey: draftTextKey)
+    }
+
+    // MARK: - Actions
+
+    func captureItem(text: String) async throws {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw NSError(domain: "com.universalinbox", code: 1, userInfo: [NSLocalizedDescriptionKey: "Cannot capture empty item"])
+        }
+
+        // Simulate network/processing delay
+        try await Task.sleep(for: .seconds(0.5))
+
+        let newItem = Item(rawText: text, status: .inbox)
+        items.insert(newItem, at: 0)
+        draftText = ""
+        save()
+    }
+
+    func moveItem(_ item: Item, to bin: Bin) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index].binId = bin.id
+            items[index].status = .processed
+            save()
+        }
+    }
+
+    func deleteItem(_ item: Item) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items.remove(at: index)
+            save()
+        }
     }
 
     // Initializer for preview/testing
