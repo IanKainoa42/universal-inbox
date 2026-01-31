@@ -6,12 +6,8 @@ struct BinsView: View {
     var body: some View {
         List {
             Section("Inbox") {
-                // Show items that are not yet processed/routed?
-                // Or is this purely a list of Bins as per name?
-                // The requirements say: Navigation structure: CaptureView (default) -> BinsView -> SettingsView
-                // It also mentions: "View items by bin after processing"
-                // I'll listing bins here.
-                ForEach(appState.bins) { bin in
+                // Explicitly use id: \.id for stable identity if bins list changes or reloads
+                ForEach(appState.bins, id: \.id) { bin in
                     Text(bin.name)
                         .font(.headline)
                     // In a real app, this would NavigationLink to a detail view of items in that bin
