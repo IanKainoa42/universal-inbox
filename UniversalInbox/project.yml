@@ -28,3 +28,29 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 1.0.0
+
+  UniversalInboxTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 17.0
+    sources: [Tests/UniversalInboxTests]
+    dependencies:
+      - target: UniversalInbox_iOS
+    settings:
+      base:
+        PRODUCT_NAME: UniversalInboxTests
+        SWIFT_VERSION: 5.0
+        GENERATE_INFOPLIST_FILE: YES
+
+  UniversalInboxUITests:
+    type: bundle.ui-test
+    platform: iOS
+    deploymentTarget: 17.0
+    sources: [Tests/UniversalInboxUITests]
+    dependencies:
+      - target: UniversalInbox_iOS
+    settings:
+      base:
+        PRODUCT_NAME: UniversalInboxUITests
+        SWIFT_VERSION: 5.0
+        GENERATE_INFOPLIST_FILE: YES

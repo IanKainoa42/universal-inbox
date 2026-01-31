@@ -12,13 +12,14 @@ class AppState {
     private let binsKey = "bins_v1"
     private let draftTextKey = "draftText_v1"
 
-    init() {
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         load()
     }
 
     func load() {
-        let defaults = UserDefaults.standard
-
         if let data = defaults.data(forKey: itemsKey),
             let decoded = try? JSONDecoder().decode([Item].self, from: data)
         {
@@ -46,8 +47,6 @@ class AppState {
     }
 
     func save() {
-        let defaults = UserDefaults.standard
-
         if let encoded = try? JSONEncoder().encode(items) {
             defaults.set(encoded, forKey: itemsKey)
         }
@@ -60,9 +59,10 @@ class AppState {
     }
 
     // Initializer for preview/testing
-    init(items: [Item], bins: [Bin], draftText: String) {
+    init(items: [Item], bins: [Bin], draftText: String, defaults: UserDefaults = .standard) {
         self.items = items
         self.bins = bins
         self.draftText = draftText
+        self.defaults = defaults
     }
 }
