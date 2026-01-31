@@ -6,7 +6,7 @@ enum ItemStatus: String, Codable {
     case archived
 }
 
-struct Item: Identifiable, Codable {
+struct Item: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var rawText: String
     var status: ItemStatus = .inbox
@@ -14,7 +14,7 @@ struct Item: Identifiable, Codable {
     var createdAt: Date = Date()
 }
 
-struct Bin: Identifiable, Codable {
+struct Bin: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var name: String
     var description: String

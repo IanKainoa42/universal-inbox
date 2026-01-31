@@ -12,14 +12,25 @@ struct BinsView: View {
                 // It also mentions: "View items by bin after processing"
                 // I'll listing bins here.
                 ForEach(appState.bins) { bin in
-                    Text(bin.name)
-                        .font(.headline)
-                    // In a real app, this would NavigationLink to a detail view of items in that bin
+                    BinRowView(bin: bin)
+                        .equatable()
                 }
             }
         }
         .listStyle(.plain)
         .navigationTitle("Bins")
+    }
+}
+
+struct BinRowView: View, Equatable {
+    let bin: Bin
+
+    var body: some View {
+        Text(bin.name)
+            .font(.headline)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(bin.name)
+            .accessibilityHint("Shows items in the \(bin.name) bin")
     }
 }
 
