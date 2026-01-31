@@ -1,10 +1,21 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(AppState.self) private var appState
+
     var body: some View {
         Form {
             Section("General") {
                 Text("Settings placeholder")
+            }
+
+            Section("AI Configuration") {
+                SecureField("OpenAI API Key", text: Bindable(appState).openAIKey)
+                    .textContentType(.password)
+
+                Text("API Key is stored securely in Keychain.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("About") {
@@ -18,5 +29,6 @@ struct SettingsView: View {
 #Preview {
     NavigationStack {
         SettingsView()
+            .environment(AppState())
     }
 }
