@@ -9,6 +9,11 @@ struct UniversalInboxApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .task {
+                    // Load data asynchronously when the view appears.
+                    // This prevents blocking the app launch on the main thread.
+                    await appState.load()
+                }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .background || newPhase == .inactive {
