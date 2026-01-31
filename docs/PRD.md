@@ -26,7 +26,7 @@ Knowledge workers and productivity enthusiasts who:
 - Mobile (iOS) + Desktop (macOS)
 
 ### 2. Inbox Accumulation
-- All captures land in single chronological inbox
+- All captures land in single chronological note
 - No organization required at capture time
 - Items persist until processed
 
