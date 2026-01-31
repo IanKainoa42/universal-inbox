@@ -65,4 +65,37 @@ class AppState {
         self.bins = bins
         self.draftText = draftText
     }
+
+    func addItem(_ text: String) async throws {
+        // Simulate async operation
+        try await Task.sleep(for: .seconds(0.5))
+
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw AppError.emptyText
+        }
+
+        let item = Item(rawText: trimmed)
+        items.insert(item, at: 0)
+        draftText = ""
+        save()
+    }
+
+    func deleteItem(_ item: Item) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items.remove(at: index)
+            save()
+        }
+    }
+}
+
+enum AppError: LocalizedError {
+    case emptyText
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyText:
+            return "Please enter some text."
+        }
+    }
 }
