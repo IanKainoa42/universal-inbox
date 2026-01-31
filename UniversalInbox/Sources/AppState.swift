@@ -7,56 +7,71 @@ class AppState {
     var bins: [Bin] = []
     var draftText: String = ""
 
-    // Persistence keys
-    private let itemsKey = "items_v1"
-    private let binsKey = "bins_v1"
+    // Persistence keys (Local only)
     private let draftTextKey = "draftText_v1"
 
+    private let cloudKitManager = CloudKitManager.shared
+
     init() {
-        load()
+        loadLocal()
+        Task {
+            await loadCloud()
+        }
     }
 
-    func load() {
+    func loadLocal() {
         let defaults = UserDefaults.standard
-
-        if let data = defaults.data(forKey: itemsKey),
-            let decoded = try? JSONDecoder().decode([Item].self, from: data)
-        {
-            items = decoded
-        }
-
-        if let data = defaults.data(forKey: binsKey),
-            let decoded = try? JSONDecoder().decode([Bin].self, from: data)
-        {
-            bins = decoded
-        }
-
         if let text = defaults.string(forKey: draftTextKey) {
             draftText = text
         }
+    }
 
-        // Seed initial bins if empty (optional, helpful for testing)
-        if bins.isEmpty {
-            bins = [
-                Bin(name: "Tasks", description: "Actionable items"),
-                Bin(name: "Ideas", description: "Thoughts and concepts"),
-                Bin(name: "Read/Watch", description: "Content to consume"),
-            ]
+    func loadCloud() async {
+        do {
+            async let fetchedItems = cloudKitManager.fetchItems()
+            async let fetchedBins = cloudKitManager.fetchBins()
+
+            let (itemsResult, binsResult) = try await (fetchedItems, fetchedBins)
+
+            await MainActor.run {
+                self.items = itemsResult
+                self.bins = binsResult
+
+                // Seed initial bins if empty (and save to Cloud)
+                if self.bins.isEmpty {
+                    let initialBins = [
+                        Bin(name: "Tasks", description: "Actionable items"),
+                        Bin(name: "Ideas", description: "Thoughts and concepts"),
+                        Bin(name: "Read/Watch", description: "Content to consume"),
+                    ]
+                    self.bins = initialBins
+                    Task {
+                        for bin in initialBins {
+                            await self.cloudKitManager.saveBin(bin)
+                        }
+                    }
+                }
+            }
+        } catch {
+            print("Error loading from CloudKit: \(error)")
         }
     }
 
     func save() {
+        // Only saving local state (draftText) here.
+        // Items/Bins are saved immediately via their own methods now.
         let defaults = UserDefaults.standard
-
-        if let encoded = try? JSONEncoder().encode(items) {
-            defaults.set(encoded, forKey: itemsKey)
-        }
-
-        if let encoded = try? JSONEncoder().encode(bins) {
-            defaults.set(encoded, forKey: binsKey)
-        }
-
         defaults.set(draftText, forKey: draftTextKey)
+    }
+
+    // MARK: - Actions
+
+    func createItem(text: String) {
+        let newItem = Item(rawText: text)
+        items.insert(newItem, at: 0)
+        Task {
+            await cloudKitManager.saveItem(newItem)
+        }
     }
 
     // Initializer for preview/testing
