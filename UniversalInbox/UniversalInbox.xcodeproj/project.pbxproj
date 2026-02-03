@@ -3,15 +3,17 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		2945BCC2C1342E0B7D0FC99F /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAF5A24512DE2BD6B59E266 /* AppState.swift */; };
 		31B182F862498F8F0F659D94 /* BinsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBAE0A8DAF12A1E1C6B9407A /* BinsView.swift */; };
+		3B1FE1DD20222BE751EF6882 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43362C030076CE6909AA7CC /* CloudKitManager.swift */; };
 		510645B9F2C0CB879F1ABD1E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9195FEE28A3C7083635879DD /* ContentView.swift */; };
 		592AC2DC140D53C861F53C15 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAB470E6A5BB4059D145095 /* Models.swift */; };
 		657D498341C65EA87CF265E8 /* UniversalInboxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA67570BC00442C3277188E2 /* UniversalInboxApp.swift */; };
+		69299D688BDEFAF36C70D37B /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43362C030076CE6909AA7CC /* CloudKitManager.swift */; };
 		785A7C994E14DDF55B33BF62 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E4BFA5E624927167A4B36A /* SettingsView.swift */; };
 		7BFECC487DD39213D2595693 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAB470E6A5BB4059D145095 /* Models.swift */; };
 		7D773D5771D286C86B16F056 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9195FEE28A3C7083635879DD /* ContentView.swift */; };
@@ -24,15 +26,16 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		243AD307D773233D49F231E8 /* UniversalInbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UniversalInbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		243AD307D773233D49F231E8 /* UniversalInbox_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = UniversalInbox_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		46E4BFA5E624927167A4B36A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9195FEE28A3C7083635879DD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		92263A167A5DB788B617D22C /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
 		AA67570BC00442C3277188E2 /* UniversalInboxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniversalInboxApp.swift; sourceTree = "<group>"; };
-		C8C08E30B444A6C7CF5F75AF /* UniversalInbox_macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = UniversalInbox_macOS.app; path = UniversalInbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C8C08E30B444A6C7CF5F75AF /* UniversalInbox_macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UniversalInbox_macOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAAB470E6A5BB4059D145095 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		DDAF5A24512DE2BD6B59E266 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		EBAE0A8DAF12A1E1C6B9407A /* BinsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinsView.swift; sourceTree = "<group>"; };
+		F43362C030076CE6909AA7CC /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -42,9 +45,18 @@
 				DDAF5A24512DE2BD6B59E266 /* AppState.swift */,
 				AA67570BC00442C3277188E2 /* UniversalInboxApp.swift */,
 				83738F752EC97D44C9DF584B /* Models */,
+				6E34B8E8E3578F6273E246BE /* Services */,
 				823634284607252D82FA403E /* Views */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		6E34B8E8E3578F6273E246BE /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				F43362C030076CE6909AA7CC /* CloudKitManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		8227FE112252ADEF2E618CCB = {
@@ -77,7 +89,7 @@
 		EE74DC8934A6EB1DE3325546 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				243AD307D773233D49F231E8 /* UniversalInbox.app */,
+				243AD307D773233D49F231E8 /* UniversalInbox_iOS.app */,
 				C8C08E30B444A6C7CF5F75AF /* UniversalInbox_macOS.app */,
 			);
 			name = Products;
@@ -100,7 +112,7 @@
 			packageProductDependencies = (
 			);
 			productName = UniversalInbox_macOS;
-			productReference = C8C08E30B444A6C7CF5F75AF /* UniversalInbox_macOS.app */;
+			productReference = C8C08E30B444A6C7CF5F75AF /* UniversalInbox.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D16CBD2C8A00EEDF424B4CA7 /* UniversalInbox_iOS */ = {
@@ -117,7 +129,7 @@
 			packageProductDependencies = (
 			);
 			productName = UniversalInbox_iOS;
-			productReference = 243AD307D773233D49F231E8 /* UniversalInbox.app */;
+			productReference = 243AD307D773233D49F231E8 /* UniversalInbox_iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -127,7 +139,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 2620;
 			};
 			buildConfigurationList = 0FB7C32989035D47217B2A29 /* Build configuration list for PBXProject "UniversalInbox" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -139,6 +151,7 @@
 			);
 			mainGroup = 8227FE112252ADEF2E618CCB;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -156,6 +169,7 @@
 				C5F00A7ECA648D0314ED8D13 /* AppState.swift in Sources */,
 				9BDC1954A51111DCF75B449F /* BinsView.swift in Sources */,
 				EAC183E95EA89D52CAB7D470 /* CaptureView.swift in Sources */,
+				3B1FE1DD20222BE751EF6882 /* CloudKitManager.swift in Sources */,
 				7D773D5771D286C86B16F056 /* ContentView.swift in Sources */,
 				592AC2DC140D53C861F53C15 /* Models.swift in Sources */,
 				DAE4C2FB4D91137B530001E2 /* SettingsView.swift in Sources */,
@@ -170,6 +184,7 @@
 				2945BCC2C1342E0B7D0FC99F /* AppState.swift in Sources */,
 				31B182F862498F8F0F659D94 /* BinsView.swift in Sources */,
 				93DB9E9446A991B120439298 /* CaptureView.swift in Sources */,
+				69299D688BDEFAF36C70D37B /* CloudKitManager.swift in Sources */,
 				510645B9F2C0CB879F1ABD1E /* ContentView.swift in Sources */,
 				7BFECC487DD39213D2595693 /* Models.swift in Sources */,
 				785A7C994E14DDF55B33BF62 /* SettingsView.swift in Sources */,
@@ -184,6 +199,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -214,9 +230,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -235,6 +253,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -245,9 +264,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UniversalInbox.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WC46K49VFA;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -267,9 +286,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UniversalInbox.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WC46K49VFA;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -289,8 +308,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UniversalInbox.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -309,6 +330,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -339,9 +361,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -353,6 +377,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -363,8 +388,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = UniversalInbox.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
