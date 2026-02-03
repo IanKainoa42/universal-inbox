@@ -11,45 +11,45 @@ class KeychainHelper {
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: account,
-        ] as [CFString: Any]
+        ] as CFDictionary
 
-        // Add or update
-        let status = SecItemAdd(query as CFDictionary, nil)
+        // Delete existing item
+        SecItemDelete(query)
 
-        if status == errSecDuplicateItem {
-            let query = [
-                kSecAttrService: service,
-                kSecAttrAccount: account,
-                kSecClass: kSecClassGenericPassword,
-            ] as [CFString: Any]
+        // Add new item
+        let status = SecItemAdd(query, nil)
 
-            let attributesToUpdate = [kSecValueData: data] as [CFString: Any]
-
-            SecItemUpdate(query as CFDictionary, attributesToUpdate as CFDictionary)
+        if status != errSecSuccess {
+            print("Error saving to Keychain: \(status)")
         }
     }
 
     func read(service: String, account: String) -> Data? {
         let query = [
+            kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: account,
-            kSecClass: kSecClassGenericPassword,
-            kSecReturnData: true
-        ] as [CFString: Any]
+            kSecReturnData: true,
+            kSecMatchLimit: kSecMatchLimitOne
+        ] as CFDictionary
 
-        var result: AnyObject?
-        SecItemCopyMatching(query as CFDictionary, &result)
+        var dataTypeRef: AnyObject?
+        let status = SecItemCopyMatching(query, &dataTypeRef)
 
-        return result as? Data
+        if status == errSecSuccess {
+            return dataTypeRef as? Data
+        } else {
+            return nil
+        }
     }
 
     func delete(service: String, account: String) {
         let query = [
+            kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: account,
-            kSecClass: kSecClassGenericPassword,
-        ] as [CFString: Any]
+        ] as CFDictionary
 
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(query)
     }
 }
