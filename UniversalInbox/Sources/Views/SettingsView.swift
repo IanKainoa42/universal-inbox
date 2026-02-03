@@ -5,6 +5,11 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section("AI Configuration") {
+                SecureField("OpenAI API Key", text: Bindable(appState).openAIKey)
+                    .textContentType(.password)
+            }
+
             Section("General") {
                 Text("Settings placeholder")
                     .accessibilityLabel("Settings placeholder")
