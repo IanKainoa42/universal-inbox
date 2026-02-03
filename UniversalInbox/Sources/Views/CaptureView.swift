@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CaptureView: View {
     @Environment(AppState.self) private var appState
-    @FocusState private var isFocused: Bool
+    @State private var text: String = ""
 
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -45,7 +45,7 @@ struct CaptureView: View {
         .navigationTitle("")
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
-            isFocused = true
+            text = appState.draftText
         }
         .onChange(of: isLoading) { _, newValue in
             if !newValue {

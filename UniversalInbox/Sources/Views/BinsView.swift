@@ -67,6 +67,18 @@ struct BinsView: View {
     }
 }
 
+struct BinRowView: View, Equatable {
+    let bin: Bin
+
+    var body: some View {
+        Text(bin.name)
+            .font(.headline)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(bin.name)
+            .accessibilityHint("Shows items in the \(bin.name) bin")
+    }
+}
+
 #Preview {
     NavigationStack {
         BinsView()
