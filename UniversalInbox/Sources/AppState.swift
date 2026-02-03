@@ -7,50 +7,53 @@ class AppState {
     var bins: [Bin] = []
     var draftText: String = ""
 
-    // API Key (in-memory cache)
-    var openAIKey: String = "" {
-        didSet {
-            // Save to Keychain whenever updated
-            if !openAIKey.isEmpty {
-                if let data = openAIKey.data(using: .utf8) {
-                    KeychainHelper.standard.save(data, service: "com.universalinbox.openai", account: "apikey")
-                }
-            } else {
-                KeychainHelper.standard.delete(service: "com.universalinbox.openai", account: "apikey")
-            }
-        }
-    }
-
-    // Persistence keys
-    private let itemsKey = "items_v1"
-    private let binsKey = "bins_v1"
+    // Persistence keys (Local only)
     private let draftTextKey = "draftText_v1"
 
+    private let cloudKitManager = CloudKitManager.shared
+
     init() {
-        load()
+        loadLocal()
+        Task {
+            await loadCloud()
+        }
     }
 
-    func load() {
-        // Load from encrypted file storage
-        if let loadedItems: [Item] = loadFromFile(key: itemsKey) {
-            items = loadedItems
+    func loadLocal() {
+        let defaults = UserDefaults.standard
+        if let text = defaults.string(forKey: draftTextKey) {
+            draftText = text
         }
+    }
 
-        if let loadedBins: [Bin] = loadFromFile(key: binsKey) {
-            bins = loadedBins
-        }
+    func loadCloud() async {
+        do {
+            async let fetchedItems = cloudKitManager.fetchItems()
+            async let fetchedBins = cloudKitManager.fetchBins()
 
-        if let loadedDraft: String = loadFromFile(key: draftTextKey) {
-            draftText = loadedDraft
-        }
+            let (itemsResult, binsResult) = try await (fetchedItems, fetchedBins)
 
-        // Seed initial bins if empty (optional, helpful for testing)
-        if bins.isEmpty {
-            bins = [
-                Bin(name: "Tasks", description: "Actionable items"),
-                Bin(name: "Ideas", description: "Thoughts and concepts"),
-                Bin(name: "Read/Watch", description: "Content to consume"),
-            ]
+            await MainActor.run {
+                self.items = itemsResult
+                self.bins = binsResult
+
+                // Seed initial bins if empty (and save to Cloud)
+                if self.bins.isEmpty {
+                    let initialBins = [
+                        Bin(name: "Tasks", description: "Actionable items"),
+                        Bin(name: "Ideas", description: "Thoughts and concepts"),
+                        Bin(name: "Read/Watch", description: "Content to consume"),
+                    ]
+                    self.bins = initialBins
+                    Task {
+                        for bin in initialBins {
+                            await self.cloudKitManager.saveBin(bin)
+                        }
+                    }
+                }
+            }
+        } catch {
+            print("Error loading from CloudKit: \(error)")
         }
 
         // Load API Key from Keychain
@@ -62,63 +65,61 @@ class AppState {
     }
 
     func save() {
-        // Attempt to capture draft text if present
-        if !draftText.isEmpty {
-            do {
-                let sanitizedText = try InputValidator.validateAndSanitize(draftText)
-                let item = Item(rawText: sanitizedText)
-                items.append(item)
-                draftText = "" // Clear draft on success
-            } catch {
-                print("Draft validation failed: \(error). Saving as draft.")
-                // Keep draftText as is
-            }
-        }
-
-        // Save to encrypted file storage
-        saveToFile(items, key: itemsKey)
-        saveToFile(bins, key: binsKey)
-        saveToFile(draftText, key: draftTextKey)
+        // Only saving local state (draftText) here.
+        // Items/Bins are saved immediately via their own methods now.
+        let defaults = UserDefaults.standard
+        defaults.set(draftText, forKey: draftTextKey)
     }
 
-    // MARK: - File Storage Helper
+    // MARK: - Actions
 
-    private func getFileURL(for key: String) -> URL {
-        let paths = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-        let documentsDirectory = paths[0]
-
-        // Ensure directory exists
-        try? FileManager.default.createDirectory(at: documentsDirectory, withIntermediateDirectories: true)
-
-        return documentsDirectory.appendingPathComponent(key + ".json")
-    }
-
-    private func saveToFile<T: Encodable>(_ data: T, key: String) {
-        do {
-            let url = getFileURL(for: key)
-            let encoded = try JSONEncoder().encode(data)
-            // .completeFileProtection ensures the file is encrypted while the device is locked
-            try encoded.write(to: url, options: [.atomic, .completeFileProtection])
-        } catch {
-            print("Failed to save \(key): \(error)")
-        }
-    }
-
-    private func loadFromFile<T: Decodable>(key: String) -> T? {
-        let url = getFileURL(for: key)
-        do {
-            let data = try Data(contentsOf: url)
-            return try JSONDecoder().decode(T.self, from: data)
-        } catch {
-            return nil
+    func createItem(text: String) {
+        let newItem = Item(rawText: text)
+        items.insert(newItem, at: 0)
+        Task {
+            await cloudKitManager.saveItem(newItem)
         }
     }
 
     // Initializer for preview/testing
-    init(items: [Item], bins: [Bin], draftText: String) {
+    init(items: [Item], bins: [Bin], draftText: String, defaults: UserDefaults = .standard) {
         self.items = items
         self.bins = bins
         self.draftText = draftText
+        self.defaults = defaults
+    }
+
+    func addItem(_ text: String) async throws {
+        // Simulate async operation
+        try await Task.sleep(for: .seconds(0.5))
+
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw AppError.emptyText
+        }
+
+        let item = Item(rawText: trimmed)
+        items.insert(item, at: 0)
+        draftText = ""
+        save()
+    }
+
+    func deleteItem(_ item: Item) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items.remove(at: index)
+            save()
+        }
+    }
+}
+
+enum AppError: LocalizedError {
+    case emptyText
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyText:
+            return "Please enter some text."
+        }
     }
 
     // MARK: - Actions
