@@ -4,110 +4,163 @@ import SwiftUI
 @MainActor
 @Observable
 class AppState {
-    var items: [Item] = [] {
-        didSet { itemsDirty = true }
-    }
-    var bins: [Bin] = [] {
-        didSet { binsDirty = true }
-    }
-    var draftText: String = "" {
-        didSet { draftDirty = true }
-    }
+    // SECURITY NOTE:
+    // This app handles user data which may be sensitive.
+    // 1. Data Storage: Currently using UserDefaults for simplicity.
+    //    TODO: Migrate to a more secure storage solution (e.g., Encrypted CoreData or SwiftData with FileProtection)
+    //    before production release to ensure user privacy and data security.
+    // 2. AI Integration: When integrating with OpenAI or other AI providers:
+    //    - Ensure API keys are stored securely in Keychain (implemented).
+    //    - Do not send PII (Personally Identifiable Information) to the AI service unless strictly necessary and with user consent.
+    //    - Review the AI provider's data retention policy.
 
-    // Dirty flags to optimize save
-    private var itemsDirty = false
-    private var binsDirty = false
-    private var draftDirty = false
+    var items: [Item] = []
+    var bins: [Bin] = []
+    var draftText: String = ""
+    var openAIKey: String = ""
 
-    // Persistence keys
-    private static let itemsKey = "items_v1"
-    private static let binsKey = "bins_v1"
-    private static let draftTextKey = "draftText_v1"
+    // Persistence keys (Local only)
+    private let draftTextKey = "draftText_v1"
+    private let apiKeyService = "com.universalinbox.openai"
+    private let apiKeyAccount = "openai_api_key"
+
+    private let cloudKitManager = CloudKitManager.shared
 
     init() {
-        // Only load critical data (draft text) synchronously
-        loadDraft()
-
-        // Load heavy data asynchronously
+        loadLocal()
         Task {
-            await loadData()
+            await loadCloud()
         }
     }
 
-    private func loadDraft() {
-        if let text = UserDefaults.standard.string(forKey: Self.draftTextKey) {
+    func loadLocal() {
+        let defaults = UserDefaults.standard
+        if let text = defaults.string(forKey: draftTextKey) {
             draftText = text
             draftDirty = false
         }
     }
 
-    private func loadData() async {
-        // Capture keys to use in detached task
-        let itemsKey = Self.itemsKey
-        let binsKey = Self.binsKey
+    func loadCloud() async {
+        do {
+            async let fetchedItems = cloudKitManager.fetchItems()
+            async let fetchedBins = cloudKitManager.fetchBins()
 
-        let (loadedItems, loadedBins) = await Task.detached(priority: .userInitiated) {
-            let defaults = UserDefaults.standard
-            var items: [Item] = []
-            var bins: [Bin] = []
+            let (itemsResult, binsResult) = try await (fetchedItems, fetchedBins)
 
-            if let data = defaults.data(forKey: itemsKey),
-               let decoded = try? JSONDecoder().decode([Item].self, from: data) {
-                items = decoded
+            await MainActor.run {
+                self.items = itemsResult
+                self.bins = binsResult
+
+                // Seed initial bins if empty (and save to Cloud)
+                if self.bins.isEmpty {
+                    let initialBins = [
+                        Bin(name: "Tasks", description: "Actionable items"),
+                        Bin(name: "Ideas", description: "Thoughts and concepts"),
+                        Bin(name: "Read/Watch", description: "Content to consume"),
+                    ]
+                    self.bins = initialBins
+                    Task {
+                        for bin in initialBins {
+                            await self.cloudKitManager.saveBin(bin)
+                        }
+                    }
+                }
             }
+        } catch {
+            print("Error loading from CloudKit: \(error)")
+        }
 
-            if let data = defaults.data(forKey: binsKey),
-               let decoded = try? JSONDecoder().decode([Bin].self, from: data) {
-                bins = decoded
-            }
-
-            // Seed initial bins if empty
-            if bins.isEmpty {
-                bins = [
-                    Bin(name: "Tasks", description: "Actionable items"),
-                    Bin(name: "Ideas", description: "Thoughts and concepts"),
-                    Bin(name: "Read/Watch", description: "Content to consume"),
-                ]
-            }
-
-            return (items, bins)
-        }.value
-
-        self.items = loadedItems
-        self.bins = loadedBins
-
-        // Reset dirty flags as we just loaded the data
-        self.itemsDirty = false
-        self.binsDirty = false
+        // Load API Key from Keychain
+        if let data = KeychainHelper.standard.read(service: "com.universalinbox.openai", account: "apikey"),
+           let key = String(data: data, encoding: .utf8) {
+            // Set backing storage directly to avoid triggering didSet save
+            self.openAIKey = key
+        }
     }
 
     func save() {
+        // Only saving local state (draftText) here.
+        // Items/Bins are saved immediately via their own methods now.
         let defaults = UserDefaults.standard
+        defaults.set(draftText, forKey: draftTextKey)
 
-        if itemsDirty {
-            if let encoded = try? JSONEncoder().encode(items) {
-                defaults.set(encoded, forKey: Self.itemsKey)
-                itemsDirty = false
-            }
+        // Save API Key to Keychain
+        if !openAIKey.isEmpty, let data = openAIKey.data(using: .utf8) {
+            KeychainHelper.standard.save(data, service: apiKeyService, account: apiKeyAccount)
+        } else if openAIKey.isEmpty {
+            KeychainHelper.standard.delete(service: apiKeyService, account: apiKeyAccount)
         }
+    }
 
-        if binsDirty {
-            if let encoded = try? JSONEncoder().encode(bins) {
-                defaults.set(encoded, forKey: Self.binsKey)
-                binsDirty = false
-            }
-        }
+    // Sanitize user input
+    func sanitize(text: String) -> String {
+        // Basic sanitization: trim whitespace and newlines
+        // Future improvements could include stripping control characters if necessary
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
-        if draftDirty {
-            defaults.set(draftText, forKey: Self.draftTextKey)
-            draftDirty = false
+    // MARK: - Actions
+
+    func createItem(text: String) {
+        let newItem = Item(rawText: text)
+        items.insert(newItem, at: 0)
+        Task {
+            await cloudKitManager.saveItem(newItem)
         }
     }
 
     // Initializer for preview/testing
-    init(items: [Item], bins: [Bin], draftText: String) {
+    init(items: [Item], bins: [Bin], draftText: String, defaults: UserDefaults = .standard) {
         self.items = items
         self.bins = bins
         self.draftText = draftText
+        self.defaults = defaults
+    }
+
+    func addItem(_ text: String) async throws {
+        // Simulate async operation
+        try await Task.sleep(for: .seconds(0.5))
+
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw AppError.emptyText
+        }
+
+        let item = Item(rawText: trimmed)
+        items.insert(item, at: 0)
+        draftText = ""
+        save()
+    }
+
+    func deleteItem(_ item: Item) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items.remove(at: index)
+            save()
+        }
+    }
+}
+
+enum AppError: LocalizedError {
+    case emptyText
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyText:
+            return "Please enter some text."
+        }
+    }
+
+    // MARK: - Actions
+
+    func captureItem(_ text: String) {
+        do {
+            let sanitizedText = try InputValidator.validateAndSanitize(text)
+            let item = Item(rawText: sanitizedText)
+            items.append(item)
+            // In a real app, trigger sync/processing here
+        } catch {
+            print("Validation failed: \(error)")
+        }
     }
 }
