@@ -75,10 +75,11 @@ class AppState {
     }
 
     // Initializer for preview/testing
-    init(items: [Item], bins: [Bin], draftText: String) {
+    init(items: [Item], bins: [Bin], draftText: String, defaults: UserDefaults = .standard) {
         self.items = items
         self.bins = bins
         self.draftText = draftText
+        self.defaults = defaults
     }
 
     func addItem(_ text: String) async throws {
