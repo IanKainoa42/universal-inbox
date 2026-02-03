@@ -1,6 +1,7 @@
 import Observation
 import SwiftUI
 
+@MainActor
 @Observable
 class AppState {
     // SECURITY NOTE:
@@ -36,6 +37,7 @@ class AppState {
         let defaults = UserDefaults.standard
         if let text = defaults.string(forKey: draftTextKey) {
             draftText = text
+            draftDirty = false
         }
     }
 
