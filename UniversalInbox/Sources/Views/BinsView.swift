@@ -9,74 +9,80 @@ struct BinsView: View {
             .sorted(by: { $0.createdAt > $1.createdAt })
     }
 
-    var body: some View {
-        List {
-            Section("Inbox") {
-                if inboxItems.isEmpty {
-                    VStack(alignment: .center, spacing: 12) {
-                        Image(systemName: "tray")
-                            .font(.largeTitle)
-                            .foregroundStyle(.secondary)
-                        Text("Inbox Empty")
-                            .font(.headline)
-                        Text("Captured items will appear here.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 120)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                } else {
-                    ForEach(inboxItems) { item in
-                        Text(item.rawText)
-                            .lineLimit(1)
-                            .contextMenu {
-                                Text("Move to...")
-                                ForEach(appState.bins) { bin in
-                                    Button {
-                                        withAnimation {
-                                            appState.moveItem(item, to: bin)
-                                            routingTrigger += 1
-                                        }
-                                    } label: {
-                                        Label(bin.name, systemImage: "folder")
-                                    }
-                                }
-                                Divider()
-                                Button("Delete", role: .destructive) {
-                                    withAnimation {
-                                        appState.deleteItem(item)
-                                    }
-                                }
-                            }
-                    }
-                }
-            }
+    var inboxItems: [Item] {
+        appState.items.filter { $0.status == .inbox }
+    }
 
-            Section("Bins") {
-                if appState.bins.isEmpty {
-                    ContentUnavailableView("No Bins", systemImage: "folder.badge.questionmark")
-                } else {
-                    ForEach(appState.bins) { bin in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(bin.name)
-                                    .font(.headline)
-                                Text(bin.description)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text("\(appState.items.filter { $0.binId == bin.id }.count)")
+    var body: some View {
+        Group {
+            if inboxItems.isEmpty && appState.bins.isEmpty {
+                ContentUnavailableView {
+                    Label("All Caught Up", systemImage: "tray")
+                } description: {
+                    Text("Capture new items or create bins to get started.")
+                }
+            } else {
+                List {
+                    Section {
+                        if inboxItems.isEmpty {
+                            Text("Inbox is empty")
                                 .foregroundStyle(.secondary)
+                                .listRowBackground(Color.clear)
+                        } else {
+                            ForEach(inboxItems) { item in
+                                Text(item.rawText)
+                                    .lineLimit(2)
+                            }
+                            .onDelete(perform: deleteItems)
                         }
+                    } header: {
+                        Label("Inbox", systemImage: "tray")
+                    }
+
+                    Section {
+                        if appState.bins.isEmpty {
+                            Text("No bins")
+                                .foregroundStyle(.secondary)
+                                .listRowBackground(Color.clear)
+                        } else {
+                            ForEach(appState.bins) { bin in
+                                VStack(alignment: .leading) {
+                                    Text(bin.name)
+                                        .font(.headline)
+                                    Text(bin.description)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    } header: {
+                        Label("Bins", systemImage: "archivebox")
                     }
                 }
+                .listStyle(.insetGrouped)
             }
         }
-        .listStyle(.insetGrouped)
         .navigationTitle("Bins")
         .sensoryFeedback(.success, trigger: routingTrigger)
+    }
+
+    private func deleteItems(at offsets: IndexSet) {
+        let itemsToDelete = offsets.map { inboxItems[$0] }
+        for item in itemsToDelete {
+            appState.deleteItem(item)
+        }
+    }
+}
+
+struct BinRowView: View, Equatable {
+    let bin: Bin
+
+    var body: some View {
+        Text(bin.name)
+            .font(.headline)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(bin.name)
+            .accessibilityHint("Shows items in the \(bin.name) bin")
     }
 }
 

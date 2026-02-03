@@ -2,7 +2,12 @@ import SwiftUI
 
 struct CaptureView: View {
     @Environment(AppState.self) private var appState
-    @FocusState private var isFocused: Bool
+    @State private var text: String = ""
+
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var showError = false
+    @State private var successTrigger = 0
 
     @State private var isCapturing = false
     @State private var showError = false
@@ -11,22 +16,36 @@ struct CaptureView: View {
 
     var body: some View {
         VStack {
-            ZStack(alignment: .topLeading) {
-                if appState.draftText.isEmpty {
-                    Text("What's on your mind?")
-                        .font(.system(size: 18, weight: .regular))
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
-                        .allowsHitTesting(false)
-                }
+            TextEditor(text: Bindable(appState).draftText)
+                .font(.system(size: 18, weight: .regular, design: .default))
+                .padding()
+                .focused($isFocused)
+                .scrollContentBackground(.hidden)  // Makes background transparent/cleaner
+                .disabled(isLoading)
 
-                TextEditor(text: Bindable(appState).draftText)
-                    .font(.system(size: 18, weight: .regular, design: .default))
-                    .focused($isFocused)
-                    .scrollContentBackground(.hidden)  // Makes background transparent/cleaner
+            HStack {
+                Spacer()
+                Button(action: {
+                    Task {
+                        await capture()
+                    }
+                }) {
+                    if isLoading {
+                        ProgressView()
+                            #if os(iOS)
+                            .tint(.white)
+                            #endif
+                    } else {
+                        Text("Capture")
+                            .bold()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(isLoading || appState.draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .keyboardShortcut(.return, modifiers: .command)
+                .padding()
             }
-            .padding()
         }
         .navigationTitle("Capture")
         .toolbar {
@@ -49,32 +68,32 @@ struct CaptureView: View {
         }
         .sensoryFeedback(.success, trigger: successTrigger)
         .onAppear {
-            isFocused = true
+            text = appState.draftText
         }
-        .onChange(of: appState.activeTab) { _, newValue in
-            if newValue == .capture {
+        .onChange(of: isLoading) { _, newValue in
+            if !newValue {
                 isFocused = true
             }
         }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage ?? "Unknown error")
+        }
+        .sensoryFeedback(.success, trigger: successTrigger)
+        .sensoryFeedback(.error, trigger: showError)
     }
 
-    private func capture() {
-        guard !appState.draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-
-        isCapturing = true
-
-        Task {
-            do {
-                try await appState.captureItem(text: appState.draftText)
-                successTrigger += 1
-                isCapturing = false
-                isFocused = true
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-                isCapturing = false
-            }
+    private func capture() async {
+        isLoading = true
+        do {
+            try await appState.addItem(appState.draftText)
+            successTrigger += 1
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
+        isLoading = false
     }
 }
 
