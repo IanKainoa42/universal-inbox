@@ -55,6 +55,13 @@ class AppState {
         } catch {
             print("Error loading from CloudKit: \(error)")
         }
+
+        // Load API Key from Keychain
+        if let data = KeychainHelper.standard.read(service: "com.universalinbox.openai", account: "apikey"),
+           let key = String(data: data, encoding: .utf8) {
+            // Set backing storage directly to avoid triggering didSet save
+            self.openAIKey = key
+        }
     }
 
     func save() {
@@ -112,6 +119,19 @@ enum AppError: LocalizedError {
         switch self {
         case .emptyText:
             return "Please enter some text."
+        }
+    }
+
+    // MARK: - Actions
+
+    func captureItem(_ text: String) {
+        do {
+            let sanitizedText = try InputValidator.validateAndSanitize(text)
+            let item = Item(rawText: sanitizedText)
+            items.append(item)
+            // In a real app, trigger sync/processing here
+        } catch {
+            print("Validation failed: \(error)")
         }
     }
 }
