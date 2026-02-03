@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__jules__jules_list_sources",
+      "mcp__jules__jules_create_session",
+      "WebSearch",
+      "WebFetch(domain:developers.google.com)",
+      "WebFetch(domain:jules.google)"
+    ]
+  }
+}
