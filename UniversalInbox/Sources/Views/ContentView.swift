@@ -9,6 +9,7 @@ struct ContentView: View {
             NavigationStack {
                 CaptureView()
             }
+            .tag(AppTab.capture)
             .tabItem {
                 Label("Capture", systemImage: "square.and.pencil")
             }
@@ -17,6 +18,7 @@ struct ContentView: View {
             NavigationStack {
                 BinsView()
             }
+            .tag(AppTab.bins)
             .tabItem {
                 Label("Bins", systemImage: "tray.full")
             }
@@ -25,6 +27,7 @@ struct ContentView: View {
             NavigationStack {
                 SettingsView()
             }
+            .tag(AppTab.settings)
             .tabItem {
                 Label("Settings", systemImage: "gear")
             }
@@ -37,6 +40,14 @@ struct ContentView: View {
                 }
                 .keyboardShortcut("n", modifiers: .command)
             }
+        }
+        // Global keyboard shortcut for New Capture
+        .background {
+            Button("New Capture") {
+                appState.activeTab = .capture
+            }
+            .keyboardShortcut("n", modifiers: .command)
+            .opacity(0)
         }
     }
 }

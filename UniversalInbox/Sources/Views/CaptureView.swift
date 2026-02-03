@@ -9,6 +9,11 @@ struct CaptureView: View {
     @State private var showError = false
     @State private var successTrigger = 0
 
+    @State private var isCapturing = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    @State private var successTrigger = 0
+
     var body: some View {
         VStack {
             TextEditor(text: Bindable(appState).draftText)
@@ -42,8 +47,26 @@ struct CaptureView: View {
                 .padding()
             }
         }
-        .navigationTitle("")
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationTitle("Capture")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                if isCapturing {
+                    ProgressView()
+                } else {
+                    Button("Capture") {
+                        capture()
+                    }
+                    .disabled(appState.draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .keyboardShortcut(.return, modifiers: .command)
+                }
+            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
+        .sensoryFeedback(.success, trigger: successTrigger)
         .onAppear {
             text = appState.draftText
         }

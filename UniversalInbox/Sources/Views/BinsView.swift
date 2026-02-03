@@ -2,6 +2,12 @@ import SwiftUI
 
 struct BinsView: View {
     @Environment(AppState.self) private var appState
+    @State private var routingTrigger = 0
+
+    var inboxItems: [Item] {
+        appState.items.filter { $0.status == .inbox }
+            .sorted(by: { $0.createdAt > $1.createdAt })
+    }
 
     var inboxItems: [Item] {
         appState.items.filter { $0.status == .inbox }
@@ -57,6 +63,7 @@ struct BinsView: View {
             }
         }
         .navigationTitle("Bins")
+        .sensoryFeedback(.success, trigger: routingTrigger)
     }
 
     private func deleteItems(at offsets: IndexSet) {
