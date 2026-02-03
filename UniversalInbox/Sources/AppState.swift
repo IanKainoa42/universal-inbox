@@ -1,11 +1,10 @@
-import Observation
-import SwiftUI
+import Combine
+import Foundation
 
-@Observable
-class AppState {
-    var items: [Item] = []
-    var bins: [Bin] = []
-    var draftText: String = ""
+class AppState: ObservableObject {
+    @Published var items: [Item] = []
+    @Published var bins: [Bin] = []
+    @Published var draftText: String = ""
 
     // Persistence keys (Local only)
     private let draftTextKey = "draftText_v1"

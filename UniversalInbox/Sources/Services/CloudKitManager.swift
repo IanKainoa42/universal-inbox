@@ -2,7 +2,6 @@ import CloudKit
 import Foundation
 import os
 
-@Observable
 class CloudKitManager {
     static let shared = CloudKitManager()
 

@@ -15,8 +15,10 @@ struct SettingsView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        SettingsView()
+struct SettingsView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            SettingsView()
+        }
     }
 }

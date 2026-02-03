@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BinsView: View {
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         List {
@@ -23,9 +23,11 @@ struct BinsView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        BinsView()
-            .environment(AppState())
+struct BinsView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            BinsView()
+                .environmentObject(AppState())
+        }
     }
 }

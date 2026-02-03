@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(AppState.self) private var appState
-
     var body: some View {
         TabView {
             NavigationStack {
@@ -29,7 +27,9 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    ContentView()
-        .environment(AppState())
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+            .environmentObject(AppState())
+    }
 }
