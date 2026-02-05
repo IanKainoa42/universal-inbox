@@ -1,7 +1,9 @@
 import CloudKit
 import Foundation
+import Observation
 import os
 
+/// CloudKit persistence layer for items and bins.
 @Observable
 class CloudKitManager {
     static let shared = CloudKitManager()
@@ -20,6 +22,7 @@ class CloudKitManager {
 
     // MARK: - Items
 
+    /// Fetches all items ordered by creation date.
     func fetchItems() async throws -> [Item] {
         let predicate = NSPredicate(value: true)
         let query = CKQuery(recordType: "Item", predicate: predicate)
@@ -39,6 +42,7 @@ class CloudKitManager {
         return items
     }
 
+    /// Saves or updates an item record.
     func saveItem(_ item: Item) async {
         let record = item.toCKRecord()
         do {
@@ -53,6 +57,7 @@ class CloudKitManager {
         }
     }
 
+    /// Deletes an item record by identifier.
     func deleteItem(_ item: Item) async {
         let recordID = CKRecord.ID(recordName: item.id.uuidString)
         do {
@@ -65,6 +70,7 @@ class CloudKitManager {
 
     // MARK: - Bins
 
+    /// Fetches all bins.
     func fetchBins() async throws -> [Bin] {
         let predicate = NSPredicate(value: true)
         let query = CKQuery(recordType: "Bin", predicate: predicate)
@@ -83,6 +89,7 @@ class CloudKitManager {
         return bins
     }
 
+    /// Saves or updates a bin record.
     func saveBin(_ bin: Bin) async {
         let record = bin.toCKRecord()
         do {

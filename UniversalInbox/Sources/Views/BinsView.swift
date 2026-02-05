@@ -2,15 +2,10 @@ import SwiftUI
 
 struct BinsView: View {
     @Environment(AppState.self) private var appState
-    @State private var routingTrigger = 0
 
     var inboxItems: [Item] {
         appState.items.filter { $0.status == .inbox }
             .sorted(by: { $0.createdAt > $1.createdAt })
-    }
-
-    var inboxItems: [Item] {
-        appState.items.filter { $0.status == .inbox }
     }
 
     var body: some View {
@@ -63,7 +58,6 @@ struct BinsView: View {
             }
         }
         .navigationTitle("Bins")
-        .sensoryFeedback(.success, trigger: routingTrigger)
     }
 
     private func deleteItems(at offsets: IndexSet) {
@@ -74,21 +68,9 @@ struct BinsView: View {
     }
 }
 
-struct BinRowView: View, Equatable {
-    let bin: Bin
-
-    var body: some View {
-        Text(bin.name)
-            .font(.headline)
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(bin.name)
-            .accessibilityHint("Shows items in the \(bin.name) bin")
-    }
-}
-
 #Preview {
     NavigationStack {
         BinsView()
-            .environment(AppState())
+            .environment(AppState(loadCloud: false))
     }
 }

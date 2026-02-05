@@ -19,31 +19,30 @@ final class AppStateTests: XCTestCase {
     }
 
     func testInitialState() {
-        let appState = AppState(defaults: defaults)
+        let appState = AppState(defaults: defaults, loadCloud: false)
         XCTAssertTrue(appState.items.isEmpty)
         // Bins should be seeded if empty
         XCTAssertFalse(appState.bins.isEmpty)
         XCTAssertEqual(appState.bins.count, 3)
     }
 
-    func testPersistence() {
-        let appState = AppState(defaults: defaults)
+    func testItemsAreNotPersistedLocally() {
+        let appState = AppState(defaults: defaults, loadCloud: false)
         let item = Item(rawText: "Test Note")
         appState.items.append(item)
         appState.save()
 
         // Create new AppState with same defaults
-        let newAppState = AppState(defaults: defaults)
-        XCTAssertEqual(newAppState.items.count, 1)
-        XCTAssertEqual(newAppState.items.first?.rawText, "Test Note")
+        let newAppState = AppState(defaults: defaults, loadCloud: false)
+        XCTAssertTrue(newAppState.items.isEmpty)
     }
 
     func testDraftTextPersistence() {
-        let appState = AppState(defaults: defaults)
+        let appState = AppState(defaults: defaults, loadCloud: false)
         appState.draftText = "Drafting..."
         appState.save()
 
-        let newAppState = AppState(defaults: defaults)
+        let newAppState = AppState(defaults: defaults, loadCloud: false)
         XCTAssertEqual(newAppState.draftText, "Drafting...")
     }
 }

@@ -2,17 +2,11 @@ import SwiftUI
 
 struct CaptureView: View {
     @Environment(AppState.self) private var appState
-    @State private var text: String = ""
-
     @State private var isLoading = false
-    @State private var errorMessage: String?
-    @State private var showError = false
-    @State private var successTrigger = 0
-
-    @State private var isCapturing = false
-    @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showError = false
     @State private var successTrigger = 0
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack {
@@ -50,11 +44,13 @@ struct CaptureView: View {
         .navigationTitle("Capture")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                if isCapturing {
+                if isLoading {
                     ProgressView()
                 } else {
                     Button("Capture") {
-                        capture()
+                        Task {
+                            await capture()
+                        }
                     }
                     .disabled(appState.draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .keyboardShortcut(.return, modifiers: .command)
@@ -67,20 +63,11 @@ struct CaptureView: View {
             Text(errorMessage)
         }
         .sensoryFeedback(.success, trigger: successTrigger)
-        .onAppear {
-            text = appState.draftText
-        }
         .onChange(of: isLoading) { _, newValue in
             if !newValue {
                 isFocused = true
             }
         }
-        .alert("Error", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage ?? "Unknown error")
-        }
-        .sensoryFeedback(.success, trigger: successTrigger)
         .sensoryFeedback(.error, trigger: showError)
     }
 
@@ -100,6 +87,6 @@ struct CaptureView: View {
 #Preview {
     NavigationStack {
         CaptureView()
-            .environment(AppState())
+            .environment(AppState(loadCloud: false))
     }
 }

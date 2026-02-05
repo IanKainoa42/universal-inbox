@@ -8,20 +8,15 @@ struct SettingsView: View {
             Section("AI Configuration") {
                 SecureField("OpenAI API Key", text: Bindable(appState).openAIKey)
                     .textContentType(.password)
+
+                Text("API Key is stored securely in Keychain.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("General") {
                 Text("Settings placeholder")
                     .accessibilityLabel("Settings placeholder")
-            }
-
-            Section("AI Configuration") {
-                SecureField("OpenAI API Key", text: Bindable(appState).openAIKey)
-                    .textContentType(.password)
-
-                Text("API Key is stored securely in Keychain.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             Section("About") {
@@ -36,6 +31,6 @@ struct SettingsView: View {
 #Preview {
     NavigationStack {
         SettingsView()
-            .environment(AppState())
+            .environment(AppState(loadCloud: false))
     }
 }

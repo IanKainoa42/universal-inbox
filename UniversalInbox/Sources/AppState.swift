@@ -1,10 +1,10 @@
-import Observation
-import SwiftUI
 import Foundation
+import Observation
 
+/// Shared observable state for the app UI and persistence coordination.
 @MainActor
 @Observable
-class AppState {
+final class AppState {
     // SECURITY NOTE:
     // This app handles user data which may be sensitive.
     // 1. Data Storage: Currently using UserDefaults for simplicity.
@@ -20,70 +20,66 @@ class AppState {
     var draftText: String = ""
     var openAIKey: String = ""
 
+    private let defaults: UserDefaults
+    private let cloudKitManager: CloudKitManager
+
     // Persistence keys (Local only)
     private let draftTextKey = "draftText_v1"
     private let apiKeyService = "com.universalinbox.openai"
     private let apiKeyAccount = "openai_api_key"
 
-    private let cloudKitManager = CloudKitManager.shared
-
-    init() {
+    init(
+        defaults: UserDefaults = .standard,
+        cloudKitManager: CloudKitManager = .shared,
+        loadCloud: Bool = true
+    ) {
+        self.defaults = defaults
+        self.cloudKitManager = cloudKitManager
         loadLocal()
-        Task {
-            await loadCloud()
+        if loadCloud {
+            Task {
+                await loadCloud()
+            }
+        } else {
+            seedInitialBinsIfNeeded()
         }
     }
 
+    /// Loads local-only state (draft text) from UserDefaults.
     func loadLocal() {
-        let defaults = UserDefaults.standard
         if let text = defaults.string(forKey: draftTextKey) {
             draftText = text
-            draftDirty = false
         }
     }
 
+    /// Loads items and bins from CloudKit, then hydrates credentials from Keychain.
     func loadCloud() async {
         do {
             async let fetchedItems = cloudKitManager.fetchItems()
             async let fetchedBins = cloudKitManager.fetchBins()
 
             let (itemsResult, binsResult) = try await (fetchedItems, fetchedBins)
+            items = itemsResult
+            bins = binsResult
 
-            await MainActor.run {
-                self.items = itemsResult
-                self.bins = binsResult
-
-                // Seed initial bins if empty (and save to Cloud)
-                if self.bins.isEmpty {
-                    let initialBins = [
-                        Bin(name: "Tasks", description: "Actionable items"),
-                        Bin(name: "Ideas", description: "Thoughts and concepts"),
-                        Bin(name: "Read/Watch", description: "Content to consume"),
-                    ]
-                    self.bins = initialBins
-                    Task {
-                        for bin in initialBins {
-                            await self.cloudKitManager.saveBin(bin)
-                        }
-                    }
-                }
+            if bins.isEmpty {
+                seedInitialBinsIfNeeded(saveToCloud: true)
             }
         } catch {
             print("Error loading from CloudKit: \(error)")
         }
 
         // Load API Key from Keychain
-        if let data = KeychainHelper.standard.read(service: "com.universalinbox.openai", account: "apikey"),
+        if let data = KeychainHelper.standard.read(service: apiKeyService, account: apiKeyAccount),
            let key = String(data: data, encoding: .utf8) {
-            // Set backing storage directly to avoid triggering didSet save
-            self.openAIKey = key
+            openAIKey = key
         }
     }
 
+    /// Persists local-only state and credentials.
     func save() {
         // Only saving local state (draftText) here.
         // Items/Bins are saved immediately via their own methods now.
-        let defaults = UserDefaults.standard
         defaults.set(draftText, forKey: draftTextKey)
 
         // Save API Key to Keychain
@@ -94,62 +90,9 @@ class AppState {
         }
     }
 
-    // Sanitize user input
-    func sanitize(text: String) -> String {
-        // Basic sanitization: trim whitespace and newlines
-        // Future improvements could include stripping control characters if necessary
-        return text.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     // MARK: - Actions
 
-    func createItem(text: String) {
-        let newItem = Item(rawText: text)
-        items.insert(newItem, at: 0)
-        Task {
-            await cloudKitManager.saveItem(newItem)
-        }
-    }
-
-    // MARK: - Actions
-
-    func captureItem(text: String) async throws {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw NSError(domain: "com.universalinbox", code: 1, userInfo: [NSLocalizedDescriptionKey: "Cannot capture empty item"])
-        }
-
-        // Simulate network/processing delay
-        try await Task.sleep(for: .seconds(0.5))
-
-        let newItem = Item(rawText: text, status: .inbox)
-        items.insert(newItem, at: 0)
-        draftText = ""
-        save()
-    }
-
-    func moveItem(_ item: Item, to bin: Bin) {
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items[index].binId = bin.id
-            items[index].status = .processed
-            save()
-        }
-    }
-
-    func deleteItem(_ item: Item) {
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items.remove(at: index)
-            save()
-        }
-    }
-
-    // Initializer for preview/testing
-    init(items: [Item], bins: [Bin], draftText: String, defaults: UserDefaults = .standard) {
-        self.items = items
-        self.bins = bins
-        self.draftText = draftText
-        self.defaults = defaults
-    }
-
+    /// Adds a new item and persists it to CloudKit.
     func addItem(_ text: String) async throws {
         // Simulate async operation
         try await Task.sleep(for: .seconds(0.5))
@@ -162,13 +105,53 @@ class AppState {
         let item = Item(rawText: trimmed)
         items.insert(item, at: 0)
         draftText = ""
+        Task {
+            await cloudKitManager.saveItem(item)
+        }
         save()
     }
 
+    /// Updates an item's bin and status, then persists it to CloudKit.
+    func moveItem(_ item: Item, to bin: Bin) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index].binId = bin.id
+            items[index].status = .processed
+            let updatedItem = items[index]
+            Task {
+                await cloudKitManager.saveItem(updatedItem)
+            }
+            save()
+        }
+    }
+
+    /// Deletes an item locally and in CloudKit.
     func deleteItem(_ item: Item) {
         if let index = items.firstIndex(where: { $0.id == item.id }) {
             items.remove(at: index)
+            Task {
+                await cloudKitManager.deleteItem(item)
+            }
             save()
+        }
+    }
+
+    private func seedInitialBinsIfNeeded(saveToCloud: Bool = false) {
+        guard bins.isEmpty else { return }
+
+        let initialBins = [
+            Bin(name: "Tasks", description: "Actionable items"),
+            Bin(name: "Ideas", description: "Thoughts and concepts"),
+            Bin(name: "Read/Watch", description: "Content to consume"),
+        ]
+
+        bins = initialBins
+
+        guard saveToCloud else { return }
+
+        Task {
+            for bin in initialBins {
+                await cloudKitManager.saveBin(bin)
+            }
         }
     }
 }
@@ -180,19 +163,6 @@ enum AppError: LocalizedError {
         switch self {
         case .emptyText:
             return "Please enter some text."
-        }
-    }
-
-    // MARK: - Actions
-
-    func captureItem(_ text: String) {
-        do {
-            let sanitizedText = try InputValidator.validateAndSanitize(text)
-            let item = Item(rawText: sanitizedText)
-            items.append(item)
-            // In a real app, trigger sync/processing here
-        } catch {
-            print("Validation failed: \(error)")
         }
     }
 }
